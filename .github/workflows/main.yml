@@ -25,7 +25,7 @@ jobs:
           export REPO_NAME=$(echo $INFO | jq -r '.repository.name')
           # Run cookiecutter
           pushd /tmp
-          cookiecutter gh:Ruban-HS/springboot_template 
+          cookiecutter . --no-input 
           popd
           # Move generated content to root directory of repo
           mv /tmp/$REPO_NAME/* .
