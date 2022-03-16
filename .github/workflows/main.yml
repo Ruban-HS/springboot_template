@@ -1,0 +1,42 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Run cookiecutter on first push
+
+on: [push]
+
+jobs:
+  run-cookiecutter:
+    if: ${{ github.repository != 'Ruban-HS/springboot_template' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.head_ref }}
+
+      - name: Install cookiecutter
+        run: pip3 install cookiecutter
+      - name: Rebuild contents using cookiecutter
+        env:
+          INFO: ${{ steps.fetch-repo-and-user-details.outputs.result }}
+        run: |
+          # Delete this workflow:
+          rm -rf .github
+          export REPO_NAME=$(echo $INFO | jq -r '.repository.name')
+          # Run cookiecutter
+          pushd /tmp
+          cookiecutter gh:Ruban-HS/springboot_template 
+          popd
+          # Move generated content to root directory of repo
+          mv /tmp/$REPO_NAME/* .
+          # And .github and .gitignore too:
+          mv /tmp/$REPO_NAME/.gitignore .
+          mv /tmp/$REPO_NAME/.github .
+          # Actions are not allowed to create new actions - workaround:
+          mv .github/workflows .github/rename-this-to-workflows
+      - name: Force push new repo contents
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "Initial plugin structure"
+          push_options: --force
+
